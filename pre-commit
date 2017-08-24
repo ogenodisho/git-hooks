@@ -1,0 +1,19 @@
+#!/usr/bin/env python
+from __future__ import print_function
+from utils import print_error, print_success, get_author_first_name, get_validation_errors_in_files
+import sys
+import subprocess
+
+# get changed files
+changed_files = subprocess.check_output(["git", "diff-index", "--cached", "--name-status", "HEAD"], universal_newlines=True)
+
+# get the non deleted files from the diff output
+non_deleted_files = [ f.split("\t") for f in changed_files.split("\n") if f and not f.startswith("D") ]
+
+errors = get_validation_errors_in_files(non_deleted_files)
+
+if errors:
+	print_error("\n".join(errors))
+	sys.exit(1) # terminate the commit
+
+print_success("Good job%s! Your code passed the git hook validation :)" % get_author_first_name())

@@ -1,0 +1,38 @@
+#!/usr/bin/env python
+from __future__ import print_function
+from utils import print_error, print_success, get_author_first_name, get_validation_errors_in_files
+import sys
+import subprocess
+
+# read the args provided by git from stdin that are in the following format...
+# <local ref> SP <local sha1> SP <remote ref> SP <remote sha1> LF
+# the line above represents a branch being pushed
+# Note: multiple branches may be pushed at once
+lines = sys.stdin.read().splitlines()
+
+for line in lines:
+	local_ref, local_sha1, remote_ref, remote_sha1 = line.split()
+
+	# get changed files
+	if remote_sha1 == "0000000000000000000000000000000000000000":
+		# remote branch doesn't exist, figure out when user branched from master and calculate diff
+		fork_from_master_point = subprocess.check_output(["git", "merge-base", "--fork-point", "master", local_ref], universal_newlines=True).strip()
+		changed_files = subprocess.check_output(["git", "diff", "--name-status", local_sha1, fork_from_master_point], universal_newlines=True)
+	else:
+		local_sha1_exists = subprocess.check_output(["git", "cat-file", "-t", local_sha1], universal_newlines=True).strip() == "commit"
+		remote_sha1_exists = subprocess.check_output(["git", "cat-file", "-t", remote_sha1], universal_newlines=True).strip() == "commit"
+		if not local_sha1_exists or not remote_sha1_exists:
+			print_error("Your local branch is behind the remote branch - pull before you push!")
+			sys.exit(1)
+		changed_files = subprocess.check_output(["git", "diff", "--name-status", local_sha1, remote_sha1], universal_newlines=True)
+
+	# get the non deleted files from the diff output
+	non_deleted_files = [ f.split("\t") for f in changed_files.split("\n") if f and not f.startswith("D") ]
+
+	errors = get_validation_errors_in_files(non_deleted_files)
+
+	if errors:
+		print_error("\n".join(errors))
+		sys.exit(1)
+
+print_success("Good job%s! Your code passed the git hook validation :)" % get_author_first_name())

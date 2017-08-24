@@ -1,0 +1,63 @@
+{
+	"type" : "object",
+	"properties" : {
+		"file_validation" : {
+			"type" : "object",
+			"properties" : {
+				".java" : {
+					"type" : "object",
+					"properties" : {
+						"validate" : { "type" : "boolean" },
+						"skip_test_directories" : { "type" : "boolean" }
+					},
+					"required": ["validate", "skip_test_directories"],
+					"additionalProperties" : false
+				},
+				".js" : {
+					"type" : "object",
+					"properties" : {
+						"validate" : { "type" : "boolean" }
+					},
+					"required": ["validate"],
+					"additionalProperties" : false
+				},
+				".feature" : {
+					"type" : "object",
+					"properties" : {
+						"validate" : { "type" : "boolean" },
+						"unallowed_annotations" : {
+							"type" : "array",
+							"items" : { "type" : "string" }
+						}
+					},
+					"required": ["validate", "unallowed_annotations"],
+					"additionalProperties" : false
+				},
+				".json" : {
+					"type" : "object",
+					"properties" : {
+						"validate" : { "type" : "boolean" }
+					},
+					"required": ["validate"],
+					"additionalProperties" : false
+				},
+				".xml" : {
+					"type" : "object",
+					"properties" : {
+						"validate" : { "type" : "boolean" }
+					},
+					"required": ["validate"],
+					"additionalProperties" : false
+				}
+			},
+			"required": [".java", ".js", ".feature", ".json", ".xml"],
+			"additionalProperties" : false
+		},
+		"test_directories" : {
+			"type" : "array",
+			"items" : { "type" : "string" }
+		}
+	},
+	 "required": ["file_validation", "test_directories"],
+	"additionalProperties" : false
+}
